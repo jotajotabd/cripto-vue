@@ -1,30 +1,15 @@
 <script setup>
-import { ref, reactive, onMounted, computed  } from "vue"
+import { ref, reactive } from "vue"
 import Alerta from "./components/Alerta.vue"
+import Spinner from "./components/Spinner.vue"
+import useCripto from "./composables/useCripto.js"
 
+  const { monedas, criptomonedas, obtenerCotizacion, cargando, cotizacion, mostrarResultado } = useCripto()
 
-  const monedas = ref([
-      { codigo: 'USD', texto: 'Dolar de Estados Unidos'},
-      { codigo: 'MXN', texto: 'Peso Mexicano'},
-      { codigo: 'EUR', texto: 'Euro'},
-      { codigo: 'GBP', texto: 'Libra Esterlina'},
-  ])
-
-  const criptomonedas = ref ([])
   const error = ref('')
   const cotizar = reactive({
     moneda: '',
     criptomoneda: ''
-  })
-  const cotizacion = ref({})
-
-  onMounted(() => {
-    const url = 'https://min-api.cryptocompare.com/data/top/mktcapfull?limit=20&tsym=USD'
-    fetch(url)
-      .then(respuesta => respuesta.json())
-      .then(({Data}) => {
-      criptomonedas.value = Data
-    })
   })
 
 const cotizarCripto = () => {
@@ -35,25 +20,9 @@ const cotizarCripto = () => {
       error.value = ''
      },3000)
     }
-    obtenerCotizacion()
+    obtenerCotizacion(cotizar)
 }
 
-const obtenerCotizacion =  async() =>{
-
-  const { moneda, criptomoneda } = cotizar
-  const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${criptomoneda}&tsyms=${moneda}`
-  console.log(url)
-
-  const respuesta = await fetch(url)
-  const data = await respuesta.json()
-
-  cotizacion.value = data.DISPLAY[criptomoneda][moneda]
-  console.log(cotizacion)
-}
-
-  const mostrarResultado = computed(() => {
-    return Object.values(cotizacion.value). length > 0
-  })
 </script>
 
 <template>
@@ -97,6 +66,9 @@ const obtenerCotizacion =  async() =>{
                 class="bg-emerald-400 hover:bg-emerald-500 hover:text-white p-2 rounded-xl cursor-pointer"
         >
       </form>
+      <Spinner
+        v-if="cargando"
+      />
       <!-- Cotización -->
       <div class="flex flex-col justify-center items-center mt-10"
             v-if="mostrarResultado">
